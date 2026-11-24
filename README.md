@@ -15,15 +15,38 @@ You have been appointed as a Junior Developer at a Startup Company! DevEx is a g
 * **Learning Progress:** Dashboards summarizing completed/in-progress simulations, skill performance metrics, and completion summaries.
   
 ## Branch Structure
-* `main`: Production-ready stable release.
-* `dev`: Integration branch for ongoing sprint development.
-* `feature/<initials>-<short-description>`: Task and user story branches.
+| Branch Type | Naming Convention | Example | Description |
+| :--- | :--- | :--- | :--- |
+| **Main** | `main` | `main` | Production-ready stable release. |
+| **Development** | `dev` | `dev` | Integration branch for ongoing sprint development. |
+| **Feature** | `feat/DEVEX-##-feature-name` | `feat/DEVEX-74-add-auth` | New features or user stories. |
+| **Bugfix** | `bugfix/DEVEX-##-issue-name` | `bugfix/DEVEX-82-fix-footer` | Bug and defect fixes. |
+| **Hotfix** | `hotfix/DEVEX-##-critical-fix` | `hotfix/DEVEX-91-fix-login` | Critical production or blocking fixes. |
 
 ## Getting Started
 
-First, run the development server:
+### Environment Variables
+
+Copy `.env.example` to `.env.local` and configure the following variables before running the app:
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | Direct Neon PostgreSQL connection string (used for migrations/SQL scripts). |
+| `DATABASE_URL_POOLED` | Recommended | Pooled Neon PostgreSQL connection string used by serverless API route handlers. |
+| `NEON_AUTH_BASE_URL` | Yes | Base URL from **Neon Console → Auth** (e.g., `https://<endpoint>.neonauth.<region>.aws.neon.tech/neondb/auth`). |
+| `NEON_AUTH_COOKIE_SECRET` | Yes | Random secret (minimum 32 characters) for signing session cookies. Generate with `openssl rand -base64 32`. |
+| `NEXT_PUBLIC_APP_URL` | No | Public application URL used for password reset redirects (defaults to `http://localhost:3000`). |
+
+Make sure **Neon Auth** is enabled on your Neon branch and `http://localhost:3000` is added to **Trusted Origins**, then apply the database schema:
 
 ```bash
+source .env.local && psql "$DATABASE_URL" -f db/schema.sql
+```
+
+### Run the Development Server
+
+```bash
+npm install
 npm run dev
 # or
 yarn dev
@@ -38,6 +61,83 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+
+## Development Workflow
+
+All work is tracked via **Jira DEVEX** work item keys so designs, branches, commits, and pull requests stay automatically linked across tools.
+
+### 1. Pick and Claim a Work Item in Jira
+1. Open the active sprint board, assign an item to yourself, and move your assigned work item (e.g `DEVEX-##`) from **To Do** to **In Progress**.
+2. Copy the exact Jira work item key (e.g., `DEVEX-74`).
+
+### 2. Design Handoff in Figma (UI / `needs-design` labels)
+1. Name Figma pages, sections, or frames using the Jira work item key prefix:
+   
+   *Example:* `[DEVEX-74] Registration, Login & Profile UI`
+2. Paste the Figma frame or URL into the Jira work item's **Design** section.
+
+### 3. Branching and Git Workflow
+All feature and fix branches must branch off **`dev`** and target **`dev`** via Pull Request. Direct pushes to `main` and `dev` are restricted.
+
+1. **Sync `dev` locally before starting a new task:**
+   ```bash
+   git checkout dev
+   git pull origin dev
+   ```
+2. **Create a branch formatted as `<type>/DEVEX-##-<short-name>`:**
+   * `feat/DEVEX-##-feature-name` — New features or user stories
+   * `bugfix/DEVEX-##-issue-name` — Bug fixes
+   * `hotfix/DEVEX-##-critical-fix` — Critical emergency fixes
+   * `chore/DEVEX-##-short-description` — Config, seeding, docs, or refactoring
+   * `test/DEVEX-##-short-description` — Integration or QA tests
+
+   *Example:*
+   ```bash
+   git checkout -b feat/DEVEX-74-add-auth
+   ```
+
+### 4. Committing & Pushing Changes
+Include the exact Jira work item key (`DEVEX-##`) in every commit message so that it is automatically attached to the ticket.
+
+**Common Types:**
+* `feat`: New feature or user story
+* `fix`: Bug fix
+* `docs`: Documentation only changes
+* `style`: Formatting, missing semicolons, etc.
+* `refactor`: Refactoring code without adding a feature or fixing a bug
+* `test`: Adding or updating tests
+* `chore`: Build tasks, package updates, dev configurations
+
+```bash
+git add .
+git commit -m "feat(auth): DEVEX-74 configure JWT session token validation"
+git push -u origin feat/DEVEX-74-add-auth
+```
+
+### 5. Pull Request & Review (`-> dev`)
+1. Open a Pull Request on GitHub merging your branch into **`dev`**.
+2. Format the **PR Title** with the Jira key:
+   ```text
+   feat(auth): DEVEX-74 add secure authentication and session tokens
+   ```
+3. In the PR description:
+   * Reference the Jira work item key (`DEVEX-74`).
+   * Attach the corresponding Figma frame link if UI changes are included.
+   * Summarize what was tested locally.
+4. Move the Jira work item to **In Review** (and to **Done** once reviewed and merged into `dev`).
+
+---
+
+## Quick Naming Reference
+
+| Tool | Format | Example (`DEVEX-74`) |
+| :--- | :--- | :--- |
+| **Jira Work Item** | `DEVEX-##` + Clean action summary | `DEVEX-74` — *Register, log in, and customize profile* |
+| **Figma Frame** | `[DEVEX-##] <Screen / Flow Name>` | `[DEVEX-74] Registration, Login & Profile UI` |
+| **GitHub Branch** | `<type>/DEVEX-##-<kebab-slug>` | `feat/DEVEX-74-add-auth` or `bugfix/DEVEX-82-fix-footer` |
+| **GitHub Commit** | `<type>(<scope>): DEVEX-## <imperative summary>` | `feat(auth): DEVEX-74 add user registration endpoint` |
+| **GitHub PR Title** | `<type>(<scope>): DEVEX-## <work-item-summary>` | `feat(auth): DEVEX-74 register, log in, and customize profile` |
 
 ## Learn More
 

@@ -25,9 +25,28 @@ You have been appointed as a Junior Developer at a Startup Company! DevEx is a g
 
 ## Getting Started
 
-First, run the development server:
+### Environment Variables
+
+Copy `.env.example` to `.env.local` and configure the following variables before running the app:
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | Direct Neon PostgreSQL connection string (used for migrations/SQL scripts). |
+| `DATABASE_URL_POOLED` | Recommended | Pooled Neon PostgreSQL connection string used by serverless API route handlers. |
+| `NEON_AUTH_BASE_URL` | Yes | Base URL from **Neon Console → Auth** (e.g., `https://<endpoint>.neonauth.<region>.aws.neon.tech/neondb/auth`). |
+| `NEON_AUTH_COOKIE_SECRET` | Yes | Random secret (minimum 32 characters) for signing session cookies. Generate with `openssl rand -base64 32`. |
+| `NEXT_PUBLIC_APP_URL` | No | Public application URL used for password reset redirects (defaults to `http://localhost:3000`). |
+
+Make sure **Neon Auth** is enabled on your Neon branch and `http://localhost:3000` is added to **Trusted Origins**, then apply the database schema:
 
 ```bash
+source .env.local && psql "$DATABASE_URL" -f db/schema.sql
+```
+
+### Run the Development Server
+
+```bash
+npm install
 npm run dev
 # or
 yarn dev
